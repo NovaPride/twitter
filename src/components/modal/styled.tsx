@@ -14,17 +14,19 @@ export const Overlay = styled.aside`
   overflow-y: auto;
 `;
 
-export const StyledModal = styled.div`
+export const StyledModal = styled.main`
   background-color: var(--bg-primary-color);
-  max-width:  330px;
+  max-width: 400px;
+  /* width: 1000px; */
   border: var(--border-gray);
   position: relative;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding:  20px;
-  border-radius:  10px;
-  &.modal_top{
+  padding: 20px;
+  padding-top: 30px;
+  border-radius: 10px;
+  &.modal_top {
     top: 0;
     transform: translate(-50%, 0);
   }
@@ -34,7 +36,7 @@ export const ModalClose = styled.div`
   position: absolute;
   top: 0px;
   right: 7px;
-  font-size:  30px;
+  font-size: 30px;
   cursor: pointer;
   transition: 0.3s;
 

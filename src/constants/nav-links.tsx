@@ -107,7 +107,7 @@ export const NAVIGATION_LINKS = [
   },
   {
     label: "Messages",
-    to: "NOT IMPLEMENTET YET",
+    to: "/messages",
     svgCode: (
       <>
         <svg
@@ -141,7 +141,7 @@ export const NAVIGATION_LINKS = [
         </svg>
       </>
     ),
-    isEnabled: false,
+    isEnabled: true,
   },
   {
     label: "Bookmarks",

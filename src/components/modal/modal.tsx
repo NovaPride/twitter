@@ -41,10 +41,6 @@ export function Modal({ onClose, children }: ModalProps) {
     };
   }, []);
 
-  useEffect(() => {
-    console.log(addStyle);
-  }, [addStyle]);
-
   const handleCloseClick = (e: SyntheticEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -54,10 +50,6 @@ export function Modal({ onClose, children }: ModalProps) {
     if ((e as KeyboardEvent).key === "Escape") {
       onClose();
     }
-  };
-
-  const handleResize = (event: any) => {
-    console.log(event.target);
   };
 
   useEffect(() => {
@@ -72,10 +64,12 @@ export function Modal({ onClose, children }: ModalProps) {
       aria-modal="true"
       className="overlay"
       onMouseDown={handleCloseClick}
-      onClick={handleResize}
       ref={elementRef}
     >
-      <StyledModal className={addStyle ? "modal modal_top" : "modal"} ref={childRef}>
+      <StyledModal
+        className={addStyle ? "modal modal_top" : "modal"}
+        ref={childRef}
+      >
         <ModalClose
           className="modal__close"
           onClick={handleCloseClick}

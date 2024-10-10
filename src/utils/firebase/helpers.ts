@@ -92,11 +92,3 @@ export const searchUsers = async (searchText: string) => {
     .slice(0, SEARCH_ITEMS_COUNT);
   return list;
 };
-
-export const searchPostsByUser = async (searchText: string) => {
-  const querySnapshot = await queryUserByName(searchText);
-  const list = querySnapshot.docs
-    .map((doc) => doc.data())
-    .slice(0, SEARCH_ITEMS_COUNT);
-  return list;
-};
