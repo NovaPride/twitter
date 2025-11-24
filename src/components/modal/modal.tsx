@@ -1,13 +1,47 @@
-import { PropsWithChildren, ReactNode, SyntheticEvent, useEffect } from "react";
+import {
+  PropsWithChildren,
+  ReactNode,
+  SyntheticEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { ModalClose, Overlay, StyledModal } from "./styled";
 
 type ModalProps = {
   onClose: VoidFunction;
   children: PropsWithChildren<ReactNode>;
+  className?: "big" | "";
 };
 
-export function Modal({ onClose, children }: ModalProps) {
+export function Modal({ onClose, children, className = "" }: ModalProps) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  const childRef = useRef<HTMLDivElement>(null);
+  const [addStyle, setAddStyle] = useState<boolean>(false);
+
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (!childRef.current) return;
+        const modalHeight = entry.contentRect.height;
+        const modalContentHeight = childRef.current.clientHeight;
+
+        setAddStyle(modalContentHeight >= modalHeight);
+      }
+    });
+    const elementRefCopy = elementRef.current;
+    if (elementRefCopy) {
+      observer.observe(elementRefCopy);
+    }
+
+    return () => {
+      if (elementRefCopy) {
+        observer.unobserve(elementRefCopy);
+      }
+    };
+  }, []);
+
   const handleCloseClick = (e: SyntheticEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -31,8 +65,12 @@ export function Modal({ onClose, children }: ModalProps) {
       aria-modal="true"
       className="overlay"
       onMouseDown={handleCloseClick}
+      ref={elementRef}
     >
-      <StyledModal className="modal">
+      <StyledModal
+        className={addStyle ? `modal modal_top ${className}` : `modal ${className}`}
+        ref={childRef}
+      >
         <ModalClose
           className="modal__close"
           onClick={handleCloseClick}

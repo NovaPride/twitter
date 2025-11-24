@@ -1,37 +1,37 @@
 import { signInWithPopup } from "firebase/auth";
 import { addDoc, collection } from "firebase/firestore";
-// TODO насрал убери
-//@ts-ignore
 import { useNavigate } from "react-router-dom";
 
 import googleIcon from "@/assets/icons/google-icon.svg";
-import twitterBackground from "@/assets/imgs/back-twitter.webp";
 import { Logo } from "@/components/logo/logo";
-import { AUTH_FOOTER_LINKS } from "@/constants/footer-links";
 import { ROUTES } from "@/constants/routes";
 import { auth, db, googleProvider } from "@/firebase";
 import { useAppDispatch } from "@/hooks/redux";
+import { useAppSelector } from "@/hooks/redux";
+import { getThemeSelector } from "@/redux/selectors/theme-selectors";
 import { setUser } from "@/redux/slices/user-slice";
+import { UserType } from "@/types";
 import { Button } from "@/ui/buttons";
-import { BasicLink, InlineLink } from "@/ui/links";
+import { InlineLink } from "@/ui/links";
 import { adaptUserObj, queryUserEqualByValue } from "@/utils/firebase/helpers";
 
 import {
-  AuthFooterWrapper,
   AuthWrapper,
+  Background,
   ButtonWrapper,
-  H1,
-  H2,
+  Header1,
+  Header2,
   LoginText,
   LogoWrapper,
   PolicyText,
-  TwitterBackground,
+  ProfileWrapper,
   Wrapper,
 } from "./styled";
 
 export function AuthPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const theme = useAppSelector(getThemeSelector);
 
   const handleSignupClick = () => {
     navigate(ROUTES.SIGNUP);
@@ -40,78 +40,78 @@ export function AuthPage() {
   const handleSignupWithGoogleClick = async () => {
     await signInWithPopup(auth, googleProvider).then(async (userCredential) => {
       const user = userCredential.user;
+      const { uid, phoneNumber, email, displayName } = user;
 
-      const newUser = {
-        uid: user.uid,
-        phone: user.phoneNumber || "",
-        email: user.email,
-        photoURL: user.photoURL || "",
-        displayName: user.displayName,
+      let newUser: UserType = {
+        uid: uid,
+        avatar: "",
+        background: "",
+        phone: phoneNumber || "",
+        email: email!,
+        displayName: displayName!,
+        accountType: "google",
       };
 
-      const queryUserSnapshot = await queryUserEqualByValue("uid", user.uid);
+      const queryUserSnapshot = await queryUserEqualByValue("uid", uid);
 
       if (queryUserSnapshot.empty) {
         await addDoc(collection(db, "users"), newUser);
+      } else {
+        const additionalData = queryUserSnapshot.docs[0].data();
+        newUser = { ...newUser, ...additionalData };
       }
-      dispatch(setUser(adaptUserObj(user)));
+
+      dispatch(setUser(adaptUserObj(newUser)));
     });
 
     navigate(ROUTES.HOME);
   };
 
   return (
-    <>
-      <Wrapper>
-        <TwitterBackground src={twitterBackground} alt="twitter background" />
-        <AuthWrapper>
-          <LogoWrapper>
-            <Logo />
-          </LogoWrapper>
-          <div>
-            <H1>Happening now</H1>
-            <H2>Join Twitter today</H2>
-
-            <ButtonWrapper>
-              <Button
-                icon={googleIcon}
-                variant="outlined"
-                size="large"
-                onClick={handleSignupWithGoogleClick}
-              >
-                Sign up with Google
-              </Button>
-            </ButtonWrapper>
-            <ButtonWrapper>
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={handleSignupClick}
-              >
-                Sign up with email
-              </Button>
-            </ButtonWrapper>
-            <PolicyText>
-              By singing up you agree to the{" "}
-              <InlineLink to="#">Terms of Service</InlineLink> and{" "}
-              <InlineLink to="#">Privacy Policy</InlineLink>, including{" "}
-              <InlineLink to="#">Cookie Use</InlineLink>.
-            </PolicyText>
-            <LoginText>
-              Already have an account?{" "}
-              <InlineLink to={ROUTES.LOGIN}>Log in</InlineLink>
-            </LoginText>
-          </div>
-        </AuthWrapper>
-      </Wrapper>
-
-      <AuthFooterWrapper>
-        {AUTH_FOOTER_LINKS.map(({ to, label }) => (
-          <BasicLink key={`${label}-${to}`} to={to}>
-            {label}
-          </BasicLink>
-        ))}
-      </AuthFooterWrapper>
-    </>
+    <ProfileWrapper>
+      <div className="gridInterface">
+        <Wrapper>
+          <AuthWrapper>
+            <LogoWrapper>
+              <Logo />
+            </LogoWrapper>
+            <div>
+              <Header1>Happening now</Header1>
+              <Header2>Join Twitter today</Header2>
+              <ButtonWrapper>
+                <Button
+                  icon={googleIcon}
+                  variant="outlined"
+                  size="large"
+                  onClick={handleSignupWithGoogleClick}
+                >
+                  Sign up with Google
+                </Button>
+              </ButtonWrapper>
+              <ButtonWrapper>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={handleSignupClick}
+                >
+                  Sign up with Email
+                </Button>
+              </ButtonWrapper>
+              <PolicyText>
+                By singing up you agree to the
+                <InlineLink to="#"> Terms of Service</InlineLink> and
+                <InlineLink to="#"> Privacy Policy</InlineLink>, including
+                <InlineLink to="#"> Cookie Use</InlineLink>.
+              </PolicyText>
+              <LoginText>
+                Already have an account?
+                <InlineLink to={ROUTES.LOGIN}> Log in</InlineLink>
+              </LoginText>
+            </div>
+          </AuthWrapper>
+        </Wrapper>
+        <Background $bgname={theme} />
+      </div>
+    </ProfileWrapper>
   );
 }

@@ -12,6 +12,7 @@ import storage from "redux-persist/lib/storage";
 
 import themeReducer from "./slices/theme-slice";
 import userReducer from "./slices/user-slice";
+
 const persistConfig = {
   key: "root",
   storage,

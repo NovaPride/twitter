@@ -1,34 +1,8 @@
-import { onAuthStateChanged } from "firebase/auth";
-import { useEffect, useState } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
-import { privateRoutes, publicRoutes, ROUTES } from "@/constants/routes";
-import { auth } from "@/firebase";
-import { useAppSelector } from "@/hooks/redux";
-import { getUserIdSelector } from "@/redux/selectors/user-selectors";
+import { privateRoutes, publicRoutes } from "@/constants/routes";
 
-import { Layout } from "../layout/layout";
-
-const ProtectedRoutes = () => {
-  const userId = useAppSelector(getUserIdSelector);
-  const [isUserAuthed, setIsUserAuthed] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, (user) => {
-        setIsUserAuthed(!!user);
-        setIsLoading(false);
-      }),
-    []
-  );
-
-  return userId ? (
-    isUserAuthed && !isLoading && <Layout />
-  ) : (
-    <Navigate to={ROUTES.AUTH} replace />
-  );
-};
+import { ProtectedRoutes } from "./ProtectedRoutes";
 
 export const router = createBrowserRouter([
   {

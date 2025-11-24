@@ -1,6 +1,5 @@
 import {
   collection,
-  DocumentData,
   getDocs,
   onSnapshot,
   query,
@@ -9,42 +8,39 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { ToggleTheme } from "@/components/toggle-theme/toggle-theme";
+import { Header } from "@/components/header/header";
 import { Tweet } from "@/components/tweet/tweet";
 import { ROUTES } from "@/constants/routes";
 import { db } from "@/firebase";
-import { useAppSelector } from "@/hooks/redux";
 import { Loader } from "@/loader/loader";
-import { getUserSelector } from "@/redux/selectors/user-selectors";
+import { PostData } from "@/types";
 
 export function PostPage() {
-  const [post, setPost] = useState<DocumentData | null>(null);
-  const user = useAppSelector(getUserSelector);
+  const [post, setPost] = useState<PostData | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const postUid = location.pathname.split("/").at(-1);
 
-  const getPostByUid = async () => {
-    const querySnapshot = await getDocs(
-      query(collection(db, "posts"), where("uid", "==", postUid))
-    );
-    if (!querySnapshot.docs[0]) throw new Error("no post by this id");
-    const post = querySnapshot.docs[0].data();
-    setPost(post);
-  };
-
   useEffect(() => {
+    const getPostByUid = async () => {
+      const querySnapshot = await getDocs(
+        query(collection(db, "posts"), where("uid", "==", postUid))
+      );
+      if (!querySnapshot.docs[0]) throw new Error("no post by this id");
+      const post = querySnapshot.docs[0].data() as PostData;
+      setPost(post);
+    };
     const q = collection(db, "posts");
     onSnapshot(q, () => {
       getPostByUid().catch(() => navigate(ROUTES.HOME));
     });
-  }, []);
+  }, [postUid]);
 
   return (
     <>
-      <ToggleTheme />
-      {post ? <Tweet userUid={user.uid} post={post} /> : <Loader />}
+      <Header title="Post" />
+      {post ? <Tweet {...post} /> : <Loader />}
     </>
   );
 }

@@ -1,21 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type UserType = {
-  uid: string;
-  email: string;
-  phone: string;
-  displayName: string;
-  photoURL?: string;
-  birthday?: string;
-  gender?: string;
-  status?: string;
-};
+import { UserType } from "@/types";
 
 const initialState = {
   uid: "",
   email: "",
   phone: "",
-  photoURL: "",
+  avatar: "",
+  background: "",
   displayName: "",
   birthday: "",
   gender: "",
@@ -28,6 +20,7 @@ export const userSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<Partial<UserType> | null>) => ({
       ...state,
+      ...initialState,
       ...action.payload,
     }),
     removeUser: () => ({

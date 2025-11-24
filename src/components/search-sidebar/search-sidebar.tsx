@@ -1,47 +1,30 @@
-import { DocumentData } from "firebase/firestore";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 
+import { SearchInput } from "@/components/search-input/search-input";
+import { SearchTweet } from "@/components/search-tweet/search-tweet";
 import { DEBOUNCE_DELAY_MS } from "@/constants/constants";
+import { ROUTES } from "@/constants/routes";
+import { useAppSelector } from "@/hooks/redux";
 import { Loader } from "@/loader/loader";
-import { searchPostsByUser, searchUsers } from "@/utils/firebase/helpers";
+import { getUserSelector } from "@/redux/selectors/user-selectors";
+import { UsersList } from "@/types";
+import { searchUsers } from "@/utils/firebase/helpers";
 
-import { SearchInput } from "../search-input/search-input";
-import { SearchTweet } from "../search-tweet/search-tweet";
 import { SearchedTweets } from "./styled";
 
-const searchOptions = {
-  "/": {
-    search: searchUsers,
-    placeholder: "Search users",
-  },
-  "/profile": {
-    search: searchPostsByUser,
-    placeholder: "Search tweets",
-  },
-  "*": {
-    search: searchUsers,
-    placeholder: "Search users",
-  },
-};
-
 export function SearchSidebar() {
-  const [list, setList] = useState<DocumentData[]>([]);
+  const user = useAppSelector(getUserSelector);
+  const [list, setList] = useState<UsersList>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
   const [debouncedSearchText] = useDebounce(searchText, DEBOUNCE_DELAY_MS);
   const { pathname } = useLocation();
-  const { search, placeholder } =
-    searchOptions[pathname as keyof typeof searchOptions] ?? searchOptions["*"];
-
-  const handleSearchTextChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-  };
 
   useEffect(() => {
     setIsLoading(true);
-    search(debouncedSearchText).then((searchResults) => {
+    searchUsers(debouncedSearchText).then((searchResults) => {
       setList(searchResults || []);
       setIsLoading(false);
     });
@@ -51,38 +34,26 @@ export function SearchSidebar() {
     <>
       <SearchInput
         value={searchText}
-        onChange={handleSearchTextChange}
-        placeholder={placeholder}
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          setSearchText(e.target.value)
+        }
+        placeholder={"Search users"}
       />
       <SearchedTweets>
         {isLoading && searchText ? (
           <Loader />
         ) : (
-          {
-            "/": list.map((item) => (
+          list.map(({ uid, displayName, email }) => {
+            const link = `${ROUTES.PROFILE}${user.uid !== uid ? `/${uid}` : ""}`;
+            return (
               <SearchTweet
-                key={item.uid}
-                name={item.displayName}
-                email={item.email}
+                key={uid}
+                name={displayName}
+                email={email}
+                link={link}
               />
-            )),
-            "/profile": list.map((item) => (
-              <SearchTweet
-                key={item.uid}
-                name={item.displayName}
-                email={item.email}
-                content={item.content}
-                link={`post/${item.uid}`}
-              />
-            )),
-            "*": list.map((item) => (
-              <SearchTweet
-                key={item.uid}
-                name={item.displayName}
-                email={item.email}
-              />
-            )),
-          }[pathname]
+            );
+          })
         )}
       </SearchedTweets>
     </>

@@ -1,7 +1,12 @@
 import { Fragment } from "react/jsx-runtime";
 import { useNavigate } from "react-router-dom";
+import Popup from "reactjs-popup";
 
-import noAvatar from "@/assets/imgs/no_avatar.svg";
+import { Avatar } from "@/components/avatar/avatar";
+import { CreatePost } from "@/components/create-post/create-post";
+import { Logo } from "@/components/logo/logo";
+import { Modal } from "@/components/modal/modal";
+import { ModalPortal } from "@/components/modal/modal-portal";
 import { NAVIGATION_LINKS } from "@/constants/nav-links";
 import { ROUTES } from "@/constants/routes";
 import { logOut } from "@/firebase";
@@ -12,18 +17,16 @@ import { setUser } from "@/redux/slices/user-slice";
 import { Button } from "@/ui/buttons";
 import { adaptUserObj } from "@/utils/firebase/helpers";
 
-import { Avatar } from "../avatar/avatar";
-import { CreatePost } from "../create-post/create-post";
-import { Logo } from "../logo/logo";
-import { Modal } from "../modal/modal";
-import { ModalPortal } from "../modal/modal-portal";
 import {
   AvatarWrapper,
+  ButtonForSmolScreen,
   ButtonWrapper,
+  LogOutButton,
   LogoWrapper,
   NavList,
-  NavListItemImage,
+  NavListItemImageWrapper,
   NavListItemLink,
+  PopupContainer,
   UserBlock,
   UserCard,
   UserName,
@@ -36,7 +39,7 @@ export function Navigation() {
   const { showModal, handleModalShow, handleModalClose } = useModalControls();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const user = useAppSelector(getUserSelector);
+  const { avatar, displayName, email } = useAppSelector(getUserSelector);
 
   const handleLogOutClick = () => {
     logOut().then(() => {
@@ -53,10 +56,22 @@ export function Navigation() {
         </LogoWrapper>
         <nav>
           <NavList>
-            {NAVIGATION_LINKS.map(({ label, to, icon, isEnabled }) => (
+            {NAVIGATION_LINKS.map(({ label, to, svgCode, isEnabled }) => (
               <Fragment key={label}>
-                <NavListItemLink to={to} $isEnabled={isEnabled}>
-                  <NavListItemImage src={icon} alt={label} />
+                <NavListItemLink
+                  to={to}
+                  $isEnabled={isEnabled}
+                  onClick={
+                    isEnabled
+                      ? () => {}
+                      : (event) => {
+                          event.preventDefault();
+                        }
+                  }
+                >
+                  <NavListItemImageWrapper title={label}>
+                    {svgCode}
+                  </NavListItemImageWrapper>
                   {label}
                 </NavListItemLink>
               </Fragment>
@@ -73,34 +88,36 @@ export function Navigation() {
             Tweet
           </Button>
         </ButtonWrapper>
-
+        <ButtonForSmolScreen onClick={handleModalShow}>💬</ButtonForSmolScreen>
         <UserWrapper>
-          <UserCard>
-            <AvatarWrapper>
-              <Avatar src={user.photoURL || noAvatar} />
-            </AvatarWrapper>
-            <UserBlock>
-              <UserName>{user.displayName}</UserName>
-              <UserTag>{user.email}</UserTag>
-            </UserBlock>
-          </UserCard>
-          <ButtonWrapper>
-            <Button
-              variant="secondary"
-              size="large"
-              type="button"
-              onClick={handleLogOutClick}
-            >
-              Log out
-            </Button>
-          </ButtonWrapper>
+          <Popup
+            className="menu-popup"
+            trigger={
+              <UserCard>
+                <AvatarWrapper>
+                  <Avatar src={avatar} />
+                </AvatarWrapper>
+                <UserBlock>
+                  <UserName>{displayName}</UserName>
+                  <UserTag>{email}</UserTag>
+                </UserBlock>
+              </UserCard>
+            }
+            position={["top center", "bottom center"]}
+            arrow={true}
+            offsetY={10}
+          >
+            <PopupContainer>
+              <LogOutButton onClick={handleLogOutClick}>Log out</LogOutButton>
+            </PopupContainer>
+          </Popup>
         </UserWrapper>
       </Wrapper>
       {showModal && (
         <ModalPortal
           children={
-            <Modal onClose={handleModalClose}>
-              <CreatePost />
+            <Modal onClose={handleModalClose} className="big">
+              <CreatePost uid="sidebar"/>
             </Modal>
           }
         />

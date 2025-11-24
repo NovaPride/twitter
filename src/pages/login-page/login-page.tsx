@@ -9,6 +9,7 @@ import { ROUTES } from "@/constants/routes";
 import { auth } from "@/firebase";
 import { useAppDispatch } from "@/hooks/redux";
 import { setUser } from "@/redux/slices/user-slice";
+import { UserType } from "@/types";
 import { Button } from "@/ui/buttons";
 import { Input } from "@/ui/inputs";
 import { InlineLink } from "@/ui/links";
@@ -19,7 +20,7 @@ import {
   queryUserEqualByValue,
 } from "@/utils/firebase/helpers";
 
-import { FormWrapper, H1, LogoWrapper } from "./styled";
+import { Background,FormWrapper, Header1, LogoWrapper } from "./styled";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -43,10 +44,10 @@ export function LoginPage() {
     const queryEmailSnapshot = await queryUserEqualByValue("email", login);
     const queryPhoneSnapshot = await queryUserEqualByValue("phone", login);
 
-    const user = getLoginFromEmailOrPhone(
+    const user: UserType = getLoginFromEmailOrPhone(
       queryEmailSnapshot,
       queryPhoneSnapshot
-    );
+    )! as UserType;
 
     if (user) {
       try {
@@ -68,7 +69,7 @@ export function LoginPage() {
       <LogoWrapper>
         <Logo />
       </LogoWrapper>
-      <H1>Log in to Twitter</H1>
+      <Header1>Log in to Twitter</Header1>
       <Input
         name="login"
         type="text"
@@ -90,6 +91,7 @@ export function LoginPage() {
       <InlineLink to={ROUTES.SIGNUP} align="right">
         Sign up to Twitter
       </InlineLink>
+      <Background />
     </FormWrapper>
   );
 }

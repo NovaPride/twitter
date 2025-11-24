@@ -7,18 +7,22 @@ import {
   QuerySnapshot,
   where,
 } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
 
-import { SEARCH_ITEMS_COUNT } from "@/constants/constants";
 import { auth, db, storage } from "@/firebase";
-import { UserType } from "@/redux/slices/user-slice";
-
-export type FileType = Blob | Uint8Array | ArrayBuffer | null;
+import { FileType, UsersList, UserType } from "@/types";
 
 export const queryUserEqualByValue = async (field: string, value: string) => {
   const querySnapshot = await getDocs(
     query(collection(db, "users"), where(field, "==", value))
+  );
+  return querySnapshot;
+};
+
+export const queryUserByName = async (value: string) => {
+  const querySnapshot = await getDocs(
+    query(collection(db, "users"), where("displayName", ">=", value), where("displayName", "<=", value + '\uf8ff'))
   );
   return querySnapshot;
 };
@@ -45,16 +49,18 @@ export const getLoginFromEmailOrPhone = (
   return user;
 };
 
-export const adaptUserObj = (user: DocumentData | null): UserType => {
+export const adaptUserObj = (user: UserType | null): UserType => {
   return {
+    avatar: user?.avatar ?? "",
+    background: user?.background ?? "",
     uid: user?.uid ?? "",
     email: user?.email ?? "",
     phone: user?.phone ?? "",
-    photoURL: user?.photoURL ?? "",
     displayName: user?.displayName ?? "",
     birthday: user?.birthday ?? "",
     gender: user?.gender ?? "",
     status: user?.status ?? "",
+    accountType: user?.accountType ?? "firebase",
   };
 };
 
@@ -79,17 +85,25 @@ export const reauthUser = async (password = "") => {
 };
 
 export const searchUsers = async (searchText: string) => {
-  const querySnapshot = await queryUserEqualByValue("displayName", searchText);
+  const querySnapshot = await queryUserByName(searchText);
   const list = querySnapshot.docs
-    .map((doc) => doc.data())
-    .slice(0, SEARCH_ITEMS_COUNT);
-  return list;
+    .map((doc) => doc.data());
+  return list as UsersList;
 };
 
-export const searchPostsByUser = async (searchText: string) => {
-  const querySnapshot = await queryPostsEqualByValue("displayName", searchText);
-  const list = querySnapshot.docs
-    .map((doc) => doc.data())
-    .slice(0, SEARCH_ITEMS_COUNT);
-  return list;
+export const getAdditionalUserDataByUid = async (userId: string, errorCallback?: () => void) => {
+  const queryUserSnapshot = await queryUserEqualByValue("uid", userId);
+  if (queryUserSnapshot.empty && errorCallback) errorCallback();
+  return queryUserSnapshot.docs[0].data();
+};
+
+export const getImageUrl = async (image: string | null) => {
+  try {
+    if (image === null) return null;
+    const url = await getDownloadURL(ref(storage, image));
+    return url;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };

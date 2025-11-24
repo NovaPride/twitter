@@ -1,4 +1,4 @@
-import { UserType } from "../slices/user-slice";
+import { UserType } from "@/types";
 
 type State = {
   userReducer: UserType;

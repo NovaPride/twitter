@@ -1,4 +1,4 @@
-import { ThemeType } from "../slices/theme-slice";
+import { ThemeType } from "@/types";
 
 type State = {
   themeReducer: ThemeType;

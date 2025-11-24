@@ -1,18 +1,19 @@
+import { UserType } from "@/types";
+
 import { UserName, UserTag, UserText, WrapperLink } from "./styled";
 
-type SearchTweetProps = {
+type SearchTweetProps = Partial<UserType> & {
   name: string;
   email: string;
-  content?: string;
   link?: string;
 };
 
-export function SearchTweet({ name, email, content, link = "#" }: SearchTweetProps) {
+export function SearchTweet({ name, email, link = "#" }: SearchTweetProps) {
   return (
     <WrapperLink to={link}>
       <UserName>{name}</UserName>
       <UserTag>{email}</UserTag>
-      <UserText>{content}</UserText>
+      <UserText />
     </WrapperLink>
   );
 }
